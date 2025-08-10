@@ -148,6 +148,11 @@
                         opcode: 'listFiles',
                         blockType: Scratch.BlockType.REPORTER,
                         text: 'List files in storage folder'
+                    },
+                    {
+                        opcode: 'isStorageFolderSet',
+                        blockType: Scratch.BlockType.BOOLEAN,
+                        text: 'Is storage folder set?'
                     }
                 ]
             };
@@ -187,6 +192,16 @@
             } catch (e) {
                 console.error('Failed to list files:', e);
                 return '';
+            }
+        }
+
+        async isStorageFolderSet() {
+            try {
+                // IndexedDBから復元済み、もしくは手動選択済みなら true
+                return !!this.storage.dirHandle;
+            } catch (e) {
+                console.error('Failed to check folder state:', e);
+                return false;
             }
         }
     }
