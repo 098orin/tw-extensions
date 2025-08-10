@@ -17,6 +17,7 @@ class sfdatas {
                 }
             ],
             menus: {
+                acceptReporters: true,
                 SF_MENU: ['198 yamaha sy1 piano']
             }
         };
@@ -24,7 +25,7 @@ class sfdatas {
 
     async getSfAsHex(args) {
         const urlTable = {
-            "198 yamaha sy1 piano": "https://www.zanderjaz.com/soundfonts/pianos/198_Yamaha_SY1_piano.sf2",
+            "198 yamaha sy1 piano": "https://098orin.github.io/tw-extentions/sf/198_Prophet_Piano_VS.sf2",
         };
 
         const url = urlTable[args.SFNAME];
