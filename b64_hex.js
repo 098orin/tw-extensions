@@ -5,9 +5,9 @@ class b64 {
             name: "base64 to hex",
             blocks: [
                 {
-                    opcode: 'b64ToHex',
+                    opcode: "b64ToHex",
                     blockType: Scratch.BlockType.REPORTER,
-                    text: 'Decode [DATA] as hex',
+                    text: "Decode [DATA] as hex",
                     arguments: {
                         DATA: {
                             type: Scratch.ArgumentType.STRING
@@ -25,8 +25,8 @@ class b64 {
 
         // Convert binary string to hexadecimal
         return Array.from(binaryString)
-            .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
-            .join('');
+            .map(char => char.charCodeAt(0).toString(16).padStart(2, "0"))
+            .join("");
 
     }
 }

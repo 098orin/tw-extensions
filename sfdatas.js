@@ -5,20 +5,25 @@ class sfdatas {
             name: "Sound Font Importer",
             blocks: [
                 {
-                    opcode: 'getSfAsHex',
+                    opcode: "getSfAsHex",
                     blockType: Scratch.BlockType.REPORTER,
-                    text: 'Import [SFNAME]',
+                    text: "Import [SFNAME]",
                     arguments: {
                         SFNAME: {
                             type: Scratch.ArgumentType.STRING,
-                            menu: 'SF_MENU'
+                            menu: "SF_MENU"
                         }
                     }
+                },
+                {
+                    opcode: "sfList",
+                    blickType: Scratch.BlockType.REPORTER,
+                    text: "Sound Font"
                 }
             ],
             menus: {
                 acceptReporters: true,
-                SF_MENU: ['198 yamaha sy1 piano']
+                SF_MENU: ["198 yamaha sy1 piano"]
             }
         };
     }
@@ -29,8 +34,8 @@ class sfdatas {
         };
 
         const url = urlTable[args.SFNAME];
-        if (!url || !url.startsWith('https://')) {
-            throw new Error('URLが無効です');
+        if (!url || !url.startsWith("https://")) {
+            throw new Error("URLが無効です");
         }
 
         const response = await fetch(url);
@@ -40,11 +45,15 @@ class sfdatas {
         const arrayBuffer = await response.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
 
-        let hex = '';
+        let hex = "";
         for (const byte of uint8Array) {
-            hex += byte.toString(16).padStart(2, '0');
+            hex += byte.toString(16).padStart(2, "0");
         }
         return hex;
+    }
+
+    sfList() {
+        return '["198 yamaha sy1 piano"]'
     }
 }
 
