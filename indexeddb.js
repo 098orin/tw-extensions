@@ -25,7 +25,6 @@ class LocalStorageDB {
     _withStore(type, callback) {
         return new Promise((resolve, reject) => {
             if (!this.db) {
-                // DBがまだ開いてなければ少し待ってリトライ
                 setTimeout(() => {
                     this._withStore(type, callback).then(resolve).catch(reject);
                 }, 100);
@@ -103,39 +102,42 @@ class LocalStorageDB {
     }
 }
 
-class localStorageExtension {
+class LocalStorageExtension {
     constructor() {
         this.db = new LocalStorageDB();
     }
 
     getInfo() {
         return {
-            id: 'localStorageDB',
+            id: 'local_storage_db',
             name: 'Local Storage DB',
+            color1: '#4C97FF',
+            color2: '#3373CC',
+            color3: '#2E5AAC',
             blocks: [
                 {
                     opcode: 'saveData',
                     blockType: Scratch.BlockType.COMMAND,
-                    text: 'save data [KEY] value [VALUE]',
+                    text: 'save data key [KEY] value [VALUE]',
                     arguments: {
-                        KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'key1' },
-                        VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: 'value' }
+                        KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'myKey' },
+                        VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: 'Hello world' }
                     }
                 },
                 {
                     opcode: 'loadData',
                     blockType: Scratch.BlockType.REPORTER,
-                    text: 'load data [KEY]',
+                    text: 'load data key [KEY]',
                     arguments: {
-                        KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'key1' }
+                        KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'myKey' }
                     }
                 },
                 {
                     opcode: 'deleteData',
                     blockType: Scratch.BlockType.COMMAND,
-                    text: 'delete data [KEY]',
+                    text: 'delete data key [KEY]',
                     arguments: {
-                        KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'key1' }
+                        KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'myKey' }
                     }
                 },
                 {
@@ -148,7 +150,8 @@ class localStorageExtension {
                     blockType: Scratch.BlockType.REPORTER,
                     text: 'list all keys'
                 }
-            ]
+            ],
+            menus: {}
         };
     }
 
@@ -157,8 +160,8 @@ class localStorageExtension {
     }
 
     async loadData(args) {
-        const value = await this.db.loadData(args.KEY);
-        return value || '';
+        const val = await this.db.loadData(args.KEY);
+        return val || '';
     }
 
     async deleteData(args) {
@@ -175,4 +178,4 @@ class localStorageExtension {
     }
 }
 
-Scratch.extensions.register(new localStorageExtension());
+Scratch.extensions.register(new LocalStorageExtension());
