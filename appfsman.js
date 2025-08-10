@@ -59,13 +59,13 @@ class AppFsMan {
                     text: 'Select folder for storage'
                 },
                 {
-                    opcode: 'saveSoundFont',
+                    opcode: 'saveFile',
                     blockType: Scratch.BlockType.COMMAND,
-                    text: 'Save SoundFont as hex to [FILENAME] with data [DATA]',
+                    text: 'Save File as hex to [FILENAME] with data [DATA]',
                     arguments: {
                         FILENAME: {
                             type: Scratch.ArgumentType.STRING,
-                            defaultValue: 'soundfont.sf2'
+                            defaultValue: 'File.sf2'
                         },
                         DATA: {
                             type: Scratch.ArgumentType.STRING,
@@ -74,13 +74,13 @@ class AppFsMan {
                     }
                 },
                 {
-                    opcode: 'loadSoundFont',
+                    opcode: 'loadFile',
                     blockType: Scratch.BlockType.REPORTER,
-                    text: 'Load SoundFont from [FILENAME] as hex',
+                    text: 'Load File from [FILENAME] as hex',
                     arguments: {
                         FILENAME: {
                             type: Scratch.ArgumentType.STRING,
-                            defaultValue: 'soundfont.sf2'
+                            defaultValue: 'File.sf2'
                         }
                     }
                 }
@@ -96,21 +96,21 @@ class AppFsMan {
         }
     }
 
-    async saveSoundFont(args) {
+    async saveFile(args) {
         try {
             const bytes = hexToUint8Array(args.DATA);
             await this.storage.saveFile(args.FILENAME, bytes);
         } catch (e) {
-            console.error('Failed to save SoundFont:', e);
+            console.error('Failed to save File:', e);
         }
     }
 
-    async loadSoundFont(args) {
+    async loadFile(args) {
         try {
             const bytes = await this.storage.loadFile(args.FILENAME);
             return uint8ArrayToHex(bytes);
         } catch (e) {
-            console.error('Failed to load SoundFont:', e);
+            console.error('Failed to load File:', e);
             return '';
         }
     }
