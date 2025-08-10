@@ -19,7 +19,7 @@ class b64 {
     }
 
     b64ToHex(args) {
-        base64 = args.DATA.toString()
+        const base64 = args.DATA.toString()
         // Decode Base64 to binary string
         const binaryString = atob(base64);
 
