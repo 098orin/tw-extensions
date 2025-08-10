@@ -17,13 +17,16 @@ class sfdatas {
                 },
                 {
                     opcode: "sfList",
-                    blickType: Scratch.BlockType.REPORTER,
+                    blockType: Scratch.BlockType.REPORTER,
                     text: "Sound Font"
                 }
             ],
             menus: {
-                acceptReporters: true,
-                SF_MENU: ["198 yamaha sy1 piano"]
+                
+                SF_MENU: {
+                    acceptReporters: true,
+                    items: ["198 yamaha sy1 piano"]
+                }
             }
         };
     }
