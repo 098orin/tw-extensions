@@ -17,42 +17,33 @@ class sfdatas {
                 }
             ],
             menus: {
-                SF_MENU: {
-                    acceptReporters: true,
-                    items: ['198 yamaha sy1 piano',]
-                }
+                SF_MENU: ['198 yamaha sy1 piano']
             }
         };
     }
 
-    getSfAsHex(args) {
+    async getSfAsHex(args) {
         const urlTable = {
             "198 yamaha sy1 piano": "https://www.zanderjaz.com/soundfonts/pianos/198_Yamaha_SY1_piano.sf2",
+        };
+
+        const url = urlTable[args.SFNAME];
+        if (!url || !url.startsWith('https://')) {
+            throw new Error('URLが無効です');
         }
 
-        const url = urlTable[args.SFNAME]
-        const https = require('https');
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTPエラー: ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
 
-        return new Promise((resolve, reject) => {
-                if (!url.startsWith('https://')) {
-                    reject(new Error('URL must start with "https://"'));
-                    return;
-                }
-
-            https.get(url, (res) => {
-                if (res.statusCode !== 200) {
-                    reject(new Error(`HTTP ${res.statusCode}`));
-                    return;
-                }
-                const chunks = [];
-                res.on('data', chunk => chunks.push(chunk));
-                res.on('end', () => {
-                    const buffer = Buffer.concat(chunks);
-                    resolve(buffer.toString('hex')); // 小文字のhex
-                });
-            }).on('error', reject);
-        });
-
+        let hex = '';
+        for (const byte of uint8Array) {
+            hex += byte.toString(16).padStart(2, '0');
+        }
+        return hex;
     }
 }
 
