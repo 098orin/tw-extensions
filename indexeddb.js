@@ -109,7 +109,7 @@ class LocalStorageExtension {
 
     getInfo() {
         return {
-            id: 'local_storage_db',
+            id: 'localStorageDb',
             name: 'Local Storage DB',
             color1: '#4C97FF',
             color2: '#3373CC',
