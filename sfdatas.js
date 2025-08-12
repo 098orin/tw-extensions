@@ -22,7 +22,6 @@ class sfdatas {
                 }
             ],
             menus: {
-                
                 SF_MENU: {
                     acceptReporters: true,
                     items: ["198 yamaha sy1 piano"]
