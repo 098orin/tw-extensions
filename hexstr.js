@@ -26,7 +26,7 @@ class hexstr {
                     arguments: {
                         HEX: {
                             type: Scratch.ArgumentType.STRING,
-                            defaultValue: "5b6f626a656374204f626a6563745d"
+                            defaultValue: "48656c6c6f2c20776f726c6421" // "Hello, world!" in hex(utf-8)
                         },
                         ENCODING: {
                             type: Scratch.ArgumentType.STRING,
