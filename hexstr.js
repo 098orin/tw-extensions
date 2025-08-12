@@ -81,6 +81,9 @@ class hexstr {
     hexToStr(args) {
         let hex = args.HEX.toString();
         const encoding = args.ENCODING.toString();
+        if (hex == null) {
+            return '';
+        }
         // まず文字列化して、空白や"0x"を削除
         hex = String(hex).replace(/[^0-9a-fA-F]/g, '');
 
