@@ -47,7 +47,9 @@ class hexstr {
             }
         }
     }
-    strToHex(text, encoding = 'utf-8') {
+    strToHex(args) {
+        const text = args.TEXT.toString();
+        const encoding = args.ENCODING.toString();
         let bytes;
         
         if (encoding.toLowerCase() === 'utf-8') {
@@ -76,7 +78,9 @@ class hexstr {
             .map(b => b.toString(16).padStart(2, '0'))
             .join('');
     }
-    hexToStr(hex, encoding = 'utf-8') {
+    hexToStr(args) {
+        let hex = args.HEX.toString();
+        const encoding = args.ENCODING.toString();
         // まず文字列化して、空白や"0x"を削除
         hex = String(hex).replace(/[^0-9a-fA-F]/g, '');
 
