@@ -77,8 +77,13 @@ class hexstr {
             .join('');
     }
     hexToStr(hex, encoding = 'utf-8') {
-        // HEX文字列をUint8Arrayに変換
-        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        // まず文字列化して、空白や"0x"を削除
+        hex = String(hex).replace(/[^0-9a-fA-F]/g, '');
+
+        // 2桁ずつ区切ってUint8Arrayに
+        const bytes = new Uint8Array(
+            hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))
+        );
 
         if (encoding.toLowerCase() === 'utf-8') {
             return new TextDecoder().decode(bytes);
@@ -95,10 +100,9 @@ class hexstr {
             }
             return result;
         } else {
-            throw new Error(`Encoding "${encoding}" はブラウザ標準では対応していません`);
+            console.error(`Encoding "${encoding}" はブラウザ標準では対応していません`);
         }
     }
-
 }
 
 Scratch.extensions.register(new hexstr());
