@@ -1,7 +1,7 @@
-class encodestrhex {
+class hexstr {
     getInfo() {
         return {
-            id: "encodeStrHex",
+            id: "hexStr",
             name: "Encode string to hex",
             blocks: [
                 {
@@ -12,6 +12,21 @@ class encodestrhex {
                         TEXT: {
                             type: Scratch.ArgumentType.STRING,
                             defaultValue: "Hello, world!"
+                        },
+                        ENCODING: {
+                            type: Scratch.ArgumentType.STRING,
+                            menu: "ENCODING_MENU"
+                        }
+                    }  
+                },
+                {
+                    opcode: "hexToStr",
+                    blockType: Scratch.BlockType.REPORTER,
+                    text: "Decode hex [HEX] to string with encoding [ENCODING]",
+                    arguments: {
+                        HEX: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: "5b6f626a656374204f626a6563745d"
                         },
                         ENCODING: {
                             type: Scratch.ArgumentType.STRING,
@@ -61,6 +76,29 @@ class encodestrhex {
             .map(b => b.toString(16).padStart(2, '0'))
             .join('');
     }
+    hexToStr(hex, encoding = 'utf-8') {
+        // HEX文字列をUint8Arrayに変換
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+        if (encoding.toLowerCase() === 'utf-8') {
+            return new TextDecoder().decode(bytes);
+        } else if (encoding.toLowerCase() === 'utf-16le' || encoding.toLowerCase() === 'unicode') {
+            let result = '';
+            for (let i = 0; i < bytes.length; i += 2) {
+                result += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8));
+            }
+            return result;
+        } else if (encoding.toLowerCase() === 'utf-16be') {
+            let result = '';
+            for (let i = 0; i < bytes.length; i += 2) {
+                result += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
+            }
+            return result;
+        } else {
+            throw new Error(`Encoding "${encoding}" はブラウザ標準では対応していません`);
+        }
+    }
+
 }
 
-Scratch.extensions.register(new encodestrhex());
+Scratch.extensions.register(new hexstr());
