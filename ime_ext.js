@@ -1,6 +1,11 @@
 (function (Scratch) {
     "use strict";
 
+    if (!Scratch.extensions.unsandboxed) {
+        alert("Ime extention must be ran as unsandboxed!");
+        throw new Error("Ime extention must be run as unsandboxed");
+    }
+
     class IMEExtension {
         constructor() {
             this.inputElement = null;
