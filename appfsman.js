@@ -112,7 +112,7 @@
             await saveToIndexedDB(STORAGE_KEY, this.dirHandle);
         }
 
-        getCurrentFolderName() {
+        currentStorageFolderName() {
             return this.dirHandle ? this.dirHandle.name : '';
         }
 
@@ -153,14 +153,11 @@
                 name: 'User App Storage',
                 blocks: [
                     {
-                        opcode: 'setDBid',
+                        opcode: 'setDBId',
                         blockType: Scratch.BlockType.COMMAND,
                         text: 'DBのidを [DBID] にする',
                         arguments: {
-                            DBID: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: 'Default'
-                            }
+                            DBID: { type: Scratch.ArgumentType.STRING, defaultValue: 'default' }
                         }
                     },
                     {
@@ -169,18 +166,28 @@
                         text: 'Select folder for storage'
                     },
                     {
+                        opcode: 'resetStorageFolder',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '作業フォルダーをリセットする'
+                    },
+                    {
+                        opcode: 'setStorageFolder',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '作業フォルダーを [FOLDER] にする',
+                        arguments: { FOLDER: { type: Scratch.ArgumentType.STRING, defaultValue: '' } }
+                    },
+                    {
+                        opcode: 'currentStorageFolder',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: '現在の作業フォルダー'
+                    },
+                    {
                         opcode: 'saveFile',
                         blockType: Scratch.BlockType.COMMAND,
                         text: 'Save File as hex to [FILENAME] with data [DATA]',
                         arguments: {
-                            FILENAME: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: 'File.sf2'
-                            },
-                            DATA: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: ''
-                            }
+                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'some.txt' },
+                            DATA: { type: Scratch.ArgumentType.STRING, defaultValue: '' }
                         }
                     },
                     {
@@ -188,10 +195,7 @@
                         blockType: Scratch.BlockType.REPORTER,
                         text: 'Load File from [FILENAME] as hex',
                         arguments: {
-                            FILENAME: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: 'File.sf2'
-                            }
+                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'some.txt' }
                         }
                     },
                     {
@@ -200,51 +204,24 @@
                         text: 'List files in storage folder'
                     },
                     {
+                        opcode: 'renameFile',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'file [OLD] を [NEW] に renameする',
+                        arguments: {
+                            OLD: { type: Scratch.ArgumentType.STRING, defaultValue: 'old.txt' },
+                            NEW: { type: Scratch.ArgumentType.STRING, defaultValue: 'new.txt' }
+                        }
+                    },
+                    {
                         opcode: 'isStorageFolderSet',
                         blockType: Scratch.BlockType.BOOLEAN,
                         text: 'Is storage folder set?'
-                    },
-                    {
-                        opcode: 'resetStorageFolder',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: '作業フォルダーをリセットする'
-                    },
-                    {
-                        opcode: 'changeStorageFolder',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: '作業フォルダーを [FOLDERNAME] にする',
-                        arguments: {
-                            FOLDERNAME: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: 'subfolder'
-                            }
-                        }
-                    },
-                    {
-                        opcode: 'getCurrentFolder',
-                        blockType: Scratch.BlockType.REPORTER,
-                        text: '現在の作業フォルダー'
-                    },
-                    {
-                        opcode: 'renameFile',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: 'file [OLDNAME] を [NEWNAME] に rename する',
-                        arguments: {
-                            OLDNAME: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: 'old.txt'
-                            },
-                            NEWNAME: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: 'new.txt'
-                            }
-                        }
                     }
                 ]
             };
         }
 
-        setDBid(args) {
+        setDBId(args) {
             const dbName = args.DBID
             DB_NAME = "AppFsManDB_" + dbName;
             console.log('DB_NAME set to:', DB_NAME);
@@ -304,7 +281,7 @@
             }
         }
 
-        async changeStorageFolder(args) {
+        async setStorageFolder(args) {
             try {
                 await this.storage.changeToSubFolder(args.FOLDERNAME);
             } catch (e) {
@@ -312,9 +289,9 @@
             }
         }
 
-        getCurrentFolder() {
+        currentStorageFolder() {
             try {
-                return this.storage.getCurrentFolderName();
+                return this.storage.currentStorageFolderName();
             } catch (e) {
                 console.error('Failed to get current folder:', e);
                 return '';
