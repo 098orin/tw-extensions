@@ -1,64 +1,68 @@
 (function (Scratch) {
     'use strict';
 
-    if (!Scratch.extensions.unsandboxed) {
-        console.warn('この拡張は unsandboxed モードで実行する必要があります。');
-        return;
-    }
+    let DB_NAME = null;
+    const STORAGE_KEY = 'AppFsMan_DirHandle';
+    const ORIGINAL_KEY = 'AppFsMan_OriginalDirHandle';
 
-    let DB_NAME = null;  // DBのID未設定ならnull
-
-    async function saveHandleToIndexedDB(handle) {
-        if (!DB_NAME) console.error('DBのidが設定されていません');
+    function openDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, 1);
             request.onupgradeneeded = () => {
-                request.result.createObjectStore('handles');
-            };
-            request.onsuccess = () => {
                 const db = request.result;
-                const tx = db.transaction('handles', 'readwrite');
-                tx.objectStore('handles').put(handle, 'AppFsMan_DirHandle');
-                tx.oncomplete = () => resolve();
-                tx.onerror = e => reject(e);
+                if (!db.objectStoreNames.contains('handles')) {
+                    db.createObjectStore('handles');
+                }
             };
+            request.onsuccess = () => resolve(request.result);
             request.onerror = e => reject(e);
         });
     }
 
-    async function loadHandleFromIndexedDB() {
-        if (!DB_NAME) console.error('DBのidが設定されていません');
+    async function saveToIndexedDB(key, value) {
+        const db = await openDB();
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, 1);
-            request.onupgradeneeded = () => {
-                request.result.createObjectStore('handles');
-            };
-            request.onsuccess = () => {
-                const db = request.result;
-                const tx = db.transaction('handles', 'readonly');
-                const getReq = tx.objectStore('handles').get('AppFsMan_DirHandle');
-                getReq.onsuccess = () => resolve(getReq.result || null);
-                getReq.onerror = e => reject(e);
-            };
-            request.onerror = e => reject(e);
+            const tx = db.transaction('handles', 'readwrite');
+            tx.objectStore('handles').put(value, key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = e => reject(e);
+        });
+    }
+
+    async function loadFromIndexedDB(key) {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('handles', 'readonly');
+            const getReq = tx.objectStore('handles').get(key);
+            getReq.onsuccess = () => resolve(getReq.result || null);
+            getReq.onerror = e => reject(e);
         });
     }
 
     class UserStorage {
         constructor() {
             this.dirHandle = null;
+            this.originalDirHandle = null;
         }
 
         async init() {
-            const savedHandle = await loadHandleFromIndexedDB();
+            const savedHandle = await loadFromIndexedDB(STORAGE_KEY);
+            const originalHandle = await loadFromIndexedDB(ORIGINAL_KEY);
             if (savedHandle) {
                 this.dirHandle = savedHandle;
+            }
+            if (originalHandle) {
+                this.originalDirHandle = originalHandle;
             }
         }
 
         async selectFolderForStorage() {
             this.dirHandle = await window.showDirectoryPicker();
-            await saveHandleToIndexedDB(this.dirHandle);
+            if (!this.originalDirHandle) {
+                this.originalDirHandle = this.dirHandle;
+                await saveToIndexedDB(ORIGINAL_KEY, this.originalDirHandle);
+            }
+            await saveToIndexedDB(STORAGE_KEY, this.dirHandle);
         }
 
         async ensureFolder() {
@@ -94,21 +98,38 @@
             return files;
         }
 
+        async resetFolder() {
+            if (this.originalDirHandle) {
+                this.dirHandle = this.originalDirHandle;
+                await saveToIndexedDB(STORAGE_KEY, this.dirHandle);
+            }
+        }
+
+        async changeToSubFolder(subFolderName) {
+            await this.ensureFolder();
+            const newDirHandle = await this.dirHandle.getDirectoryHandle(subFolderName, { create: true });
+            this.dirHandle = newDirHandle;
+            await saveToIndexedDB(STORAGE_KEY, this.dirHandle);
+        }
+
+        getCurrentFolderName() {
+            return this.dirHandle ? this.dirHandle.name : '';
+        }
+
         async renameFile(oldName, newName) {
             await this.ensureFolder();
             const oldFileHandle = await this.dirHandle.getFileHandle(oldName);
             const file = await oldFileHandle.getFile();
-            const arrayBuffer = await file.arrayBuffer();
             const newFileHandle = await this.dirHandle.getFileHandle(newName, { create: true });
             const writable = await newFileHandle.createWritable();
-            await writable.write(arrayBuffer);
+            await writable.write(await file.arrayBuffer());
             await writable.close();
             await this.dirHandle.removeEntry(oldName);
         }
     }
 
     function hexToUint8Array(hex) {
-        if (hex.length % 2 !== 0) console.error('Invalid hex string');
+        if (hex.length % 2 !== 0) throw new Error('Invalid hex string');
         const arr = new Uint8Array(hex.length / 2);
         for (let i = 0; i < arr.length; i++) {
             arr[i] = parseInt(hex.substr(i * 2, 2), 16);
@@ -123,6 +144,7 @@
     class AppFsMan {
         constructor() {
             this.storage = new UserStorage();
+            this.storage.init().catch(e => console.error('Failed to init storage', e));
         }
 
         getInfo() {
@@ -131,11 +153,14 @@
                 name: 'User App Storage',
                 blocks: [
                     {
-                        opcode: 'setDBId',
+                        opcode: 'setDBid',
                         blockType: Scratch.BlockType.COMMAND,
                         text: 'DBのidを [DBID] にする',
                         arguments: {
-                            DBID: { type: Scratch.ArgumentType.STRING, defaultValue: 'default' }
+                            DBID: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: 'Default'
+                            }
                         }
                     },
                     {
@@ -144,28 +169,18 @@
                         text: 'Select folder for storage'
                     },
                     {
-                        opcode: 'resetStorageFolder',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: '作業フォルダーをリセットする'
-                    },
-                    {
-                        opcode: 'setStorageFolder',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: '作業フォルダーを [FOLDER] にする',
-                        arguments: { FOLDER: { type: Scratch.ArgumentType.STRING, defaultValue: '' } }
-                    },
-                    {
-                        opcode: 'currentStorageFolder',
-                        blockType: Scratch.BlockType.REPORTER,
-                        text: '現在の作業フォルダー'
-                    },
-                    {
                         opcode: 'saveFile',
                         blockType: Scratch.BlockType.COMMAND,
                         text: 'Save File as hex to [FILENAME] with data [DATA]',
                         arguments: {
-                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'some.txt' },
-                            DATA: { type: Scratch.ArgumentType.STRING, defaultValue: '' }
+                            FILENAME: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: 'File.sf2'
+                            },
+                            DATA: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: ''
+                            }
                         }
                     },
                     {
@@ -173,7 +188,10 @@
                         blockType: Scratch.BlockType.REPORTER,
                         text: 'Load File from [FILENAME] as hex',
                         arguments: {
-                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'some.txt' }
+                            FILENAME: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: 'File.sf2'
+                            }
                         }
                     },
                     {
@@ -182,77 +200,133 @@
                         text: 'List files in storage folder'
                     },
                     {
-                        opcode: 'renameFile',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: 'file [OLD] を [NEW] に renameする',
-                        arguments: {
-                            OLD: { type: Scratch.ArgumentType.STRING, defaultValue: 'old.txt' },
-                            NEW: { type: Scratch.ArgumentType.STRING, defaultValue: 'new.txt' }
-                        }
-                    },
-                    {
                         opcode: 'isStorageFolderSet',
                         blockType: Scratch.BlockType.BOOLEAN,
                         text: 'Is storage folder set?'
+                    },
+                    {
+                        opcode: 'resetStorageFolder',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '作業フォルダーをリセットする'
+                    },
+                    {
+                        opcode: 'changeStorageFolder',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: '作業フォルダーを [FOLDERNAME] にする',
+                        arguments: {
+                            FOLDERNAME: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: 'subfolder'
+                            }
+                        }
+                    },
+                    {
+                        opcode: 'getCurrentFolder',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: '現在の作業フォルダー'
+                    },
+                    {
+                        opcode: 'renameFile',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'file [OLDNAME] を [NEWNAME] に rename する',
+                        arguments: {
+                            OLDNAME: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: 'old.txt'
+                            },
+                            NEWNAME: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: 'new.txt'
+                            }
+                        }
                     }
                 ]
             };
         }
 
-        setDBId(args) {
-            const userId = args.DBID;
-            if (!userId) console.error('DBのidを必ず指定してください');
-            DB_NAME = 'AppFsManDB_' + userId;
-            this.storage = new UserStorage();
-            this.storage.init().catch(e => console.error('Failed to init storage after DB change', e));
+        setDBid(args) {
+            const dbName = args.DBID
+            DB_NAME = "AppFsManDB_" + dbName;
+            console.log('DB_NAME set to:', DB_NAME);
         }
 
         async selectStorageFolder() {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            await this.storage.selectFolderForStorage();
-        }
-
-        async resetStorageFolder() {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            await this.storage.init();
-        }
-
-        async setStorageFolder(args) {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            console.error('作業フォルダーを文字列指定でセットすることはブラウザではサポートされていません');
-        }
-
-        async currentStorageFolder() {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            return this.storage.dirHandle ? this.storage.dirHandle.name : '';
+            try {
+                await this.storage.selectFolderForStorage();
+            } catch (e) {
+                console.error('Folder selection cancelled or failed', e);
+            }
         }
 
         async saveFile(args) {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            const bytes = hexToUint8Array(args.DATA);
-            await this.storage.saveFile(args.FILENAME, bytes);
+            try {
+                const bytes = hexToUint8Array(args.DATA);
+                await this.storage.saveFile(args.FILENAME, bytes);
+            } catch (e) {
+                console.error('Failed to save File:', e);
+            }
         }
 
         async loadFile(args) {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            const bytes = await this.storage.loadFile(args.FILENAME);
-            return uint8ArrayToHex(bytes);
+            try {
+                const bytes = await this.storage.loadFile(args.FILENAME);
+                return uint8ArrayToHex(bytes);
+            } catch (e) {
+                console.error('Failed to load File:', e);
+                return '';
+            }
         }
 
         async listFiles() {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            const files = await this.storage.listFiles();
-            return files.join(',');
-        }
-
-        async renameFile(args) {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            await this.storage.renameFile(args.OLD, args.NEW);
+            try {
+                const files = await this.storage.listFiles();
+                return files.join(',');
+            } catch (e) {
+                console.error('Failed to list files:', e);
+                return '';
+            }
         }
 
         async isStorageFolderSet() {
-            if (!DB_NAME) console.error('DBのidが設定されていません');
-            return !!this.storage.dirHandle;
+            try {
+                return !!this.storage.dirHandle;
+            } catch (e) {
+                console.error('Failed to check folder state:', e);
+                return false;
+            }
+        }
+
+        async resetStorageFolder() {
+            try {
+                await this.storage.resetFolder();
+            } catch (e) {
+                console.error('Failed to reset folder:', e);
+            }
+        }
+
+        async changeStorageFolder(args) {
+            try {
+                await this.storage.changeToSubFolder(args.FOLDERNAME);
+            } catch (e) {
+                console.error('Failed to change storage folder:', e);
+            }
+        }
+
+        getCurrentFolder() {
+            try {
+                return this.storage.getCurrentFolderName();
+            } catch (e) {
+                console.error('Failed to get current folder:', e);
+                return '';
+            }
+        }
+
+        async renameFile(args) {
+            try {
+                await this.storage.renameFile(args.OLDNAME, args.NEWNAME);
+            } catch (e) {
+                console.error('Failed to rename file:', e);
+            }
         }
     }
 
