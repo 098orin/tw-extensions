@@ -157,7 +157,7 @@
                     {
                         opcode: 'currentStorageFolder',
                         blockType: Scratch.BlockType.REPORTER,
-                        text: '(現在の作業フォルダー)'
+                        text: '現在の作業フォルダー'
                     },
                     {
                         opcode: 'saveFile',
