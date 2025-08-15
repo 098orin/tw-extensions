@@ -173,8 +173,8 @@
                     {
                         opcode: 'setStorageFolder',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: '作業フォルダーを [FOLDER] にする',
-                        arguments: { FOLDER: { type: Scratch.ArgumentType.STRING, defaultValue: '' } }
+                        text: '作業フォルダーを [FOLDERNAME] にする',
+                        arguments: { FOLDERNAME: { type: Scratch.ArgumentType.STRING, defaultValue: '' } }
                     },
                     {
                         opcode: 'currentStorageFolder',
@@ -206,16 +206,23 @@
                     {
                         opcode: 'renameFile',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'file [OLD] を [NEW] に renameする',
+                        text: 'file [OLDNAME] を [NEWNAME] に renameする',
                         arguments: {
-                            OLD: { type: Scratch.ArgumentType.STRING, defaultValue: 'old.txt' },
-                            NEW: { type: Scratch.ArgumentType.STRING, defaultValue: 'new.txt' }
+                            OLDNAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'old.txt' },
+                            NEWNAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'new.txt' }
                         }
                     },
                     {
                         opcode: 'isStorageFolderSet',
                         blockType: Scratch.BlockType.BOOLEAN,
                         text: 'Is storage folder set?'
+                    },
+                    // これより下は互換性の為のブロック
+                    {
+                        opcode: "getStorageFolderName",
+                        hideFromPalette: true,
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: "Get storage folder name",
                     }
                 ]
             };
@@ -304,6 +311,10 @@
             } catch (e) {
                 console.error('Failed to rename file:', e);
             }
+        }
+
+        getStorageFolderName() {
+            return this.currentStorageFolder();
         }
     }
 

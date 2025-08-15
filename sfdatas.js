@@ -32,7 +32,7 @@ class sfdatas {
 
     async getSfAsHex(args) {
         const urlTable = {
-            "198 yamaha sy1 piano": "https://098orin.github.io/tw-extentions/sf/198_Prophet_Piano_VS.sf2",
+            "198 yamaha sy1 piano": "https://098orin.github.io/tw-extensions/sf/198_Prophet_Piano_VS.sf2",
         };
 
         const url = urlTable[args.SFNAME];
