@@ -16,7 +16,7 @@
             this.baseStageHeight = 360;
 
             this.defaultWidth = 150;
-            this.defaultHeight = 30;
+            this.defaultHeight = 20;
             this.relativeWidth = this.defaultWidth;
             this.relativeHeight = this.defaultHeight;
 
