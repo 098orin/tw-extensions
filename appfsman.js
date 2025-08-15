@@ -164,7 +164,7 @@
                         blockType: Scratch.BlockType.COMMAND,
                         text: 'Save File as hex to [FILENAME] with data [DATA]',
                         arguments: {
-                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'File.sf2' },
+                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'some.txt' },
                             DATA: { type: Scratch.ArgumentType.STRING, defaultValue: '' }
                         }
                     },
@@ -173,7 +173,7 @@
                         blockType: Scratch.BlockType.REPORTER,
                         text: 'Load File from [FILENAME] as hex',
                         arguments: {
-                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'File.sf2' }
+                            FILENAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'some.txt' }
                         }
                     },
                     {
@@ -186,8 +186,8 @@
                         blockType: Scratch.BlockType.COMMAND,
                         text: 'file [OLD] を [NEW] に renameする',
                         arguments: {
-                            OLD: { type: Scratch.ArgumentType.STRING, defaultValue: 'Old.sf2' },
-                            NEW: { type: Scratch.ArgumentType.STRING, defaultValue: 'New.sf2' }
+                            OLD: { type: Scratch.ArgumentType.STRING, defaultValue: 'old.txt' },
+                            NEW: { type: Scratch.ArgumentType.STRING, defaultValue: 'new.txt' }
                         }
                     },
                     {
