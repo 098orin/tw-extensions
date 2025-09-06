@@ -13,6 +13,16 @@ class b64 {
                             type: Scratch.ArgumentType.STRING
                         }
                     }
+                },
+                {
+                    opcode: "b64FromDataURL",
+                    blockType: Scratch.BlockType.REPORTER,
+                    text: "Get base64 from data URL [DATA]",
+                    arguments: {
+                        DATA: {
+                            type: Scratch.ArgumentType.STRING
+                        }
+                    }
                 }
             ]
         }
@@ -28,6 +38,12 @@ class b64 {
             .map(char => char.charCodeAt(0).toString(16).padStart(2, "0"))
             .join("");
 
+    }
+
+    b64FromDataURL(args) {
+        const dataURL = args.DATA.toString();
+        const match = dataURL.match(/^data:.*;base64,(.*)$/);
+        return match ? match[1] : null;
     }
 }
 
