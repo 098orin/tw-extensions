@@ -43,7 +43,7 @@ class b64 {
     b64FromDataURL(args) {
         const dataURL = args.DATA.toString();
         const match = dataURL.match(/^data:.*;base64,(.*)$/);
-        return match ? match[1] : null;
+        return match ? match[1] : "";
     }
 }
 
