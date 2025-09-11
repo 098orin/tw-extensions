@@ -42,7 +42,7 @@
       return this.tempo;
     }
 
-    SoundNote(args) {
+    SoundNote(args, util) {
       const note = Scratch.Cast.toNumber(args.NOTE);
       const instrument = args.INSTRUMENT;
       const beats = Scratch.Cast.toNumber(args.BEATS);
@@ -53,7 +53,24 @@
         console.warn('Audio engine not found');
       } else {
         console.log(`Playing note ${note} with instrument ${instrument} for ${seconds} beats`);
+        this._playNote(util, note, instrument, seconds);
       }
+    }
+
+
+    _playNote(util, note, instrument, seconds) {
+      if (audioEngine === null) {
+        console.warn('Audio engine not found');
+        return;
+      }
+
+      if (util.target.sprite.soundBank === null) {
+        console.warn('Sound bank not found');
+        return;
+      }
+      console.log(util.target);
+      console.log(util.runtime.audioEngine);
+
     }
 
   }
